@@ -15,15 +15,15 @@ export function NewsReadOverlay({ isMobile = false }: { isMobile?: boolean }) {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: isMobile ? "-100%" : -20 }}
           transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-          className={`absolute top-0 left-0 h-full bg-[#111111] shadow-2xl z-20 flex flex-col overflow-hidden ${
+          className={`absolute top-0 h-full bg-[#111111] shadow-2xl z-20 flex flex-col overflow-hidden ${
             isMobile 
-              ? "w-full lg:hidden" 
-              : "hidden lg:flex w-1/2 border border-neutral-800 rounded-xl"
+              ? "left-0 w-full lg:hidden" 
+              : "left-full ml-2 hidden lg:flex w-[450px] border border-neutral-800 rounded-xl"
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-neutral-800 shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-3 border-b border-neutral-800 shrink-0">
+            <div className="flex items-center gap-3 px-1">
               <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center shrink-0">
                 <Newspaper className="w-4 h-4 text-neutral-400" />
               </div>
@@ -51,15 +51,15 @@ export function NewsReadOverlay({ isMobile = false }: { isMobile?: boolean }) {
           </div>
 
           {/* Title (Fixed) */}
-          <div className="px-5 pt-5 pb-3 shrink-0">
-            <h2 className="text-xl font-medium text-white leading-snug">
+          <div className="px-4 pt-4 pb-2 shrink-0">
+            <h2 className="text-xl font-medium text-white leading-snug px-1">
               {selectedNews.title}
             </h2>
           </div>
 
           {/* Content (Scrollable) */}
-          <div className="flex-1 overflow-y-auto px-5 pb-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="text-[14px] text-neutral-300 leading-relaxed space-y-4">
+          <div className="flex-1 overflow-y-auto px-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="text-[14px] text-neutral-300 leading-relaxed space-y-4 px-1">
               <p>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               </p>
@@ -76,8 +76,8 @@ export function NewsReadOverlay({ isMobile = false }: { isMobile?: boolean }) {
           </div>
 
           {/* Footer (Fixed) */}
-          <div className="p-4 border-t border-neutral-800 shrink-0 flex items-center justify-between bg-[#111111]">
-            <div className="flex items-center gap-2">
+          <div className="p-3 border-t border-neutral-800 shrink-0 flex items-center justify-between bg-[#111111]">
+            <div className="flex items-center gap-2 px-1">
               {selectedNews.tags.map(tag => (
                 <div key={tag} className="flex items-center gap-1 bg-neutral-800/50 px-2 py-1 rounded-md">
                   <span className="text-yellow-500/80 text-[11px]">$</span>

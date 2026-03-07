@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { ArrowUp, ArrowDown, Newspaper, X, Search, Filter } from "lucide-react"
 
 import { useNewsStore } from "@/store/news-store"
-import { NewsReadOverlay } from "@/components/dashboard/news-read-overlay"
+import { NewsReadOverlay } from "@/components/modals/NewsReadOverlay"
 
 type NewsItemData = {
   id: string;
@@ -240,14 +240,14 @@ export function NewsFeedContent({ onClose }: { onClose?: () => void } = {}) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-neutral-800/50 rounded-full px-2 py-2 w-full border border-neutral-700/30 focus-within:border-neutral-500 transition-colors">
-          <Search className="h-3 w-3 text-neutral-400" />
+        <div className="flex items-center gap-2 bg-neutral-800/50 rounded-full px-2 py-1.5 w-full border border-neutral-700/30 focus-within:border-neutral-500 transition-colors">
+          <Search className="h-3 w-3 text-neutral-400 shrink-0" />
           <input 
             type="text" 
             placeholder="Search news..." 
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(10); }}
-            className="bg-transparent text-[13px] text-white outline-none w-full placeholder:text-neutral-500"
+            className="bg-transparent text-[11px] text-white outline-none w-full placeholder:text-neutral-500"
           />
         </div>
       </div>
@@ -272,7 +272,7 @@ export function NewsFeedContent({ onClose }: { onClose?: () => void } = {}) {
                 <div className="p-4 flex justify-center">
                   <button 
                     onClick={handleLoadMore}
-                    className="px-4 py-2 cursor-pointer bg-neutral-800 hover:bg-neutral-700 text-white text-[13px] font-medium rounded-full transition-colors border border-neutral-700/50"
+                    className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Load more
                   </button>
@@ -293,8 +293,9 @@ export function NewsFeed() {
   return (
     <>
       {/* Desktop View (Hidden on Mobile/Tablet) */}
-      <div className="hidden lg:flex w-[320px] shrink-0 h-full">
+      <div className="hidden lg:flex w-[320px] shrink-0 h-full relative z-30">
         <NewsFeedContent />
+        <NewsReadOverlay />
       </div>
 
       {/* Mobile View (Floating Action Button & Drawer) */}

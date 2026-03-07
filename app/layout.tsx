@@ -1,15 +1,23 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
+import { Cookies } from '@/components/common/Cookies';
+import { FirstPopup } from '@/components/modals/FirstPopup';
+import { StakeModal } from '@/components/modals/StakeModal';
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: "RA Staking",
+  description: "MEME Staking Platform",
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <Cookies />
+        <FirstPopup />
+        <StakeModal />
+      </body>
     </html>
   );
 }

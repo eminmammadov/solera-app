@@ -5,9 +5,17 @@ import { Menu, Search, ChevronDown, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
+import { useStakeModal } from "@/store/use-stake-modal"
+import { useWallet } from "@/store/use-wallet"
+import { useUserData } from "@/store/use-user-data"
+import { ConnectModal } from "@/components/modals/ConnectModal"
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false)
+  const { openModal } = useStakeModal()
+  const { isConnected } = useWallet()
+  const { activeStakings, availableBalance } = useUserData()
 
   return (
     <>
@@ -24,47 +32,58 @@ export function Header() {
             <Image src="https://e.radikal.host/2026/03/02/ra-white.jpg" alt="RA Staking Logo" width={32} height={32} className="object-cover" referrerPolicy="no-referrer" />
           </div>
           <div className="hidden sm:flex flex-col">
-            <span className="text-sm font-semibold leading-none text-white">RA Staking</span>
+            <span className="text-sm font-semibold leading-none text-white">Solera Work</span>
             <span className="text-[10px] text-neutral-500">MEME coin staking platform</span>
           </div>
         </Link>
-        <div className="hidden md:flex items-center gap-2 ml-4">
-          <div className="flex items-center rounded-full bg-[#111111] border border-neutral-800 p-1">
-            <button className="rounded-full bg-neutral-800 px-2 py-1 text-xs text-white cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-            </button>
-          </div>
-          <div className="flex items-center rounded-full bg-[#111111] border border-neutral-800 px-3 py-1.5 focus-within:border-neutral-600 transition-colors">
-            <Search className="h-4 w-4 text-neutral-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Search" 
-              className="bg-transparent text-sm text-white outline-none w-32 placeholder:text-neutral-500"
-            />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-full bg-[#111111] border border-neutral-800 px-2 py-1">
+            <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden shrink-0">
+              <Image src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana Logo" width={16} height={16} className="object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <span className="text-[10px] font-medium text-green-500">mainnet</span>
           </div>
         </div>
-        <div className="flex md:hidden items-center ml-auto mr-2">
-          <button className="text-neutral-400 hover:text-white cursor-pointer">
-            <Search className="h-5 w-5" />
-          </button>
-        </div>
+        <nav className="hidden lg:flex items-center gap-6 ml-8">
+          <Link href="/staking" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Staking</Link>
+          <Link href="/swap" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Swap</Link>
+          <Link href="/vault" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Vault</Link>
+          <Link href="/Blog" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Blog</Link>
+          <Link href="/docs" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Documentations</Link>
+        </nav>
       </div>
       
       <div className="flex items-center gap-2 sm:gap-2">
-        <div className="hidden sm:flex items-center gap-2 rounded-full bg-[#111111] border border-neutral-800 px-3 py-1.5">
-          <span className="text-sm font-semibold text-white">5</span>
-          <span className="flex items-center justify-center rounded-full bg-green-500/20 h-5 w-5 text-green-500 hover:bg-green-500/30 transition-colors cursor-pointer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-          </span>
-        </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#111111] border border-neutral-800 px-3 py-1.5">
-          <span className="text-sm font-semibold text-white">1,000,000RA</span>
-        </div>
-        <div className="h-8 w-8 rounded-full overflow-hidden border border-neutral-800 shrink-0">
-          <Image src="https://e.radikal.host/2026/03/02/ra.jpg" alt="Avatar" width={32} height={32} className="object-cover" referrerPolicy="no-referrer" />
-        </div>
+        {isConnected ? (
+          <>
+            <div className="flex items-center gap-2 rounded-full bg-[#111111] border border-neutral-800 px-3 py-1.5">
+              <span className="text-sm font-semibold text-white">{activeStakings.length}</span>
+              <button 
+                onClick={() => openModal({ ticker: "RA", name: "RA Token", price: 1.00 })}
+                className="flex items-center justify-center rounded-full bg-green-500/20 h-5 w-5 text-green-500 hover:bg-green-500/30 transition-colors cursor-pointer"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              </button>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-[#111111] border border-neutral-800 px-3 py-1.5">
+              <span className="text-sm font-semibold text-white">{availableBalance.toLocaleString()} RA</span>
+            </div>
+            <Link href="/profile" className="h-8 w-8 rounded-full overflow-hidden border border-neutral-800 shrink-0 cursor-pointer hover:border-neutral-600 transition-colors">
+              <Image src="https://e.radikal.host/2026/03/04/avatar.png" alt="Avatar" width={32} height={32} className="object-cover" referrerPolicy="no-referrer" />
+            </Link>
+          </>
+        ) : (
+          <button
+            onClick={() => setIsConnectModalOpen(true)}
+            className="px-4 py-1.5 rounded-full bg-white text-black text-sm font-medium hover:bg-neutral-200 transition-colors cursor-pointer"
+          >
+            Connect
+          </button>
+        )}
       </div>
     </header>
+
+      <ConnectModal isOpen={isConnectModalOpen} onClose={() => setIsConnectModalOpen(false)} />
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
@@ -96,14 +115,20 @@ export function Header() {
               
               <nav className="flex-1 overflow-y-auto py-2">
                 <ul className="flex flex-col gap-1 px-2">
-                  {['Staking', 'Swap', 'Partners', 'News'].map((item) => (
-                    <li key={item}>
+                  {[
+                    { name: 'Staking', href: '/staking' },
+                    { name: 'Swap', href: '/swap' },
+                    { name: 'Vault', href: '/vault' },
+                    { name: 'Blog', href: '/Blog' },
+                    { name: 'Documentations', href: '/docs' }
+                  ].map((item) => (
+                    <li key={item.name}>
                       <Link 
-                        href="#" 
+                        href={item.href} 
                         className="flex items-center px-3 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-800/50 rounded-lg transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {item}
+                        {item.name}
                       </Link>
                     </li>
                   ))}

@@ -54,8 +54,10 @@ export function TopNews() {
     setCurrentIndex((prev) => (prev - 1 + newsData.length) % newsData.length)
   }
 
-  const currentNews = newsData[currentIndex]
-  const nextNews = newsData[(currentIndex + 1) % newsData.length]
+  const currentNews = newsData[currentIndex] || newsData[0]
+  const nextNews = newsData[(currentIndex + 1) % newsData.length] || newsData[0]
+
+  if (!currentNews || !nextNews) return null;
 
   return (
     <div 
@@ -64,7 +66,7 @@ export function TopNews() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center justify-between mb-4 shrink-0">
-        <h3 className="text-[17px] font-medium text-white">Top news</h3>
+        <h3 className="text-[17px] font-medium text-white">Latest blog</h3>
         <div className="flex items-center gap-1">
           <button 
             onClick={prevSlide}

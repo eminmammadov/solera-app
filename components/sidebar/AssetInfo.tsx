@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { ExternalLink, ChevronDown } from "lucide-react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "motion/react"
+import { currentPrice } from "@/lib/chart-data"
 
 export function AssetInfo() {
   const [currentTime, setCurrentTime] = useState<string>("")
@@ -136,7 +137,7 @@ export function AssetInfo() {
       
       <div className="flex flex-col gap-1 mt-1">
         <div className="flex items-center gap-1 text-sm text-neutral-200">
-          <span>Solera Work</span>
+          <span>Solera</span>
           <a 
             href="https://solscan.io/token/2jPF5RY4B3jtJb4iAwRZ5J68WLLu4uaaBZ4wpjV29YYA" 
             target="_blank" 
@@ -152,7 +153,7 @@ export function AssetInfo() {
 
       <div className="flex flex-col mt-2">
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl sm:text-[42px] leading-none font-normal text-white tracking-tight">5,670.98</span>
+          <span className="text-4xl sm:text-[42px] leading-none font-normal text-white tracking-tight">{currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           <span className="text-sm text-neutral-500 font-medium">USD</span>
         </div>
         <div className="flex items-center gap-2 text-[15px] mt-2">

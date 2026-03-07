@@ -1,25 +1,13 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Maximize2, Minimize2, ArrowUpDown, ArrowDown, ArrowUp, ExternalLink } from "lucide-react"
-import { Card } from "@/components/ui/card"
+import { ChevronDown, Maximize2, Minimize2, ArrowUpDown, ArrowDown, ArrowUp, ExternalLink, Search } from "lucide-react"
+import { Card } from "@/components/ui/Card"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
-
-const tokens = [
-  { ticker: "SPX", name: "S&P 500", price: "5,670.98", chg24h: "0.67%", stake7d: "5.32%", stake1m: "8.15%", stake3m: "12.67%", stake6m: "18.4%", stake12m: "24.5%", color: "green", category: "Meme tokens" },
-  { ticker: "NDQ", name: "Nasdaq 100", price: "19,581.78", chg24h: "0.75%", stake7d: "2.35%", stake1m: "5.20%", stake3m: "8.75%", stake6m: "15.2%", stake12m: "28.4%", color: "green", category: "Meme tokens" },
-  { ticker: "DJI", name: "Dow Jones", price: "42,225.32", chg24h: "0.56%", stake7d: "-1.36%", stake1m: "1.45%", stake3m: "4.56%", stake6m: "8.9%", stake12m: "14.2%", color: "green", category: "Meme tokens" },
-  { ticker: "VIX", name: "Volatility Index", price: "21.51", chg24h: "-1.19%", stake7d: "10.26%", stake1m: "2.15%", stake3m: "-5.19%", stake6m: "-12.4%", stake12m: "-18.5%", color: "red", category: "Meme tokens" },
-  { ticker: "VIX $", name: "VIX Dollar", price: "102.74", chg24h: "-0.92%", stake7d: "-0.95%", stake1m: "-1.20%", stake3m: "-2.92%", stake6m: "-4.5%", stake12m: "-6.8%", color: "red", category: "Meme tokens" },
-  { ticker: "AAPL", name: "Apple Inc.", price: "223.89", chg24h: "0.31%", stake7d: "4.70%", stake1m: "8.45%", stake3m: "15.31%", stake6m: "22.5%", stake12m: "34.2%", color: "green", category: "Asset tokens" },
-  { ticker: "NFLX", name: "Netflix, Inc.", price: "282.76", chg24h: "5.33%", stake7d: "1.30%", stake1m: "12.4%", stake3m: "25.33%", stake6m: "42.1%", stake12m: "68.5%", color: "green", category: "Asset tokens" },
-  { ticker: "TSLA", name: "Tesla, Inc.", price: "395.52", chg24h: "0.77%", stake7d: "-3.14%", stake1m: "4.25%", stake3m: "10.77%", stake6m: "18.4%", stake12m: "25.6%", color: "green", category: "Asset tokens" },
-  { ticker: "USOIL", name: "Crude Oil", price: "69.88", chg24h: "-1.10%", stake7d: "-2.78%", stake1m: "-4.15%", stake3m: "-5.10%", stake6m: "-8.4%", stake12m: "-12.5%", color: "red", category: "Partner tokens" },
-  { ticker: "GOLD", name: "Gold", price: "3,129.45", chg24h: "-0.28%", stake7d: "1.83%", stake1m: "4.50%", stake3m: "8.28%", stake6m: "14.2%", stake12m: "22.4%", color: "red", category: "Partner tokens" },
-  { ticker: "SILVER", name: "Silver", price: "33.22", chg24h: "-1.96%", stake7d: "-0.65%", stake1m: "0.85%", stake3m: "1.96%", stake6m: "5.4%", stake12m: "8.2%", color: "red", category: "Partner tokens" },
-]
+import { useStakeModal } from "@/store/use-stake-modal"
+import { useMarketData } from "@/store/use-market-data"
 
 type SortKey = 'price' | 'chg24h' | 'stake7d' | 'stake1m' | 'stake3m' | 'stake6m' | 'stake12m';
 
@@ -28,6 +16,11 @@ export function TokenList() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' } | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [visibleCount, setVisibleCount] = useState(10)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const { openModal } = useStakeModal()
+  const { tokens } = useMarketData()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,16 +34,20 @@ export function TokenList() {
   }, [])
 
   const categories = ["All", "Meme tokens", "Asset tokens", "Partner tokens"]
-  const filteredTokens = selectedCategory === "All" ? tokens : tokens.filter(t => t.category === selectedCategory)
+  let filteredTokens = selectedCategory === "All" ? tokens : tokens.filter(t => t.category === selectedCategory)
 
-  const parseValue = (val: string) => {
-    return parseFloat(val.replace(/,/g, '').replace(/%/g, ''))
+  if (searchQuery) {
+    const normalizedSearch = searchQuery.toLowerCase()
+    filteredTokens = filteredTokens.filter(t => t.ticker.toLowerCase().includes(normalizedSearch))
   }
 
   const sortedTokens = [...filteredTokens].sort((a, b) => {
-    if (!sortConfig) return 0
-    const aVal = parseValue(a[sortConfig.key])
-    const bVal = parseValue(b[sortConfig.key])
+    if (!sortConfig) {
+      // Default sort by publishedAt descending (newest first)
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    }
+    const aVal = a[sortConfig.key]
+    const bVal = b[sortConfig.key]
     if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
     if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
     return 0
@@ -62,6 +59,15 @@ export function TokenList() {
       direction = 'asc'
     }
     setSortConfig({ key, direction })
+  }
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true)
+    // Simulate network request
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 10)
+      setIsLoadingMore(false)
+    }, 800)
   }
 
   const renderSortIcon = (key: SortKey) => {
@@ -78,15 +84,27 @@ export function TokenList() {
 
       <motion.div
         layout
-        className={`flex flex-col p-4 bg-[#111111] rounded-xl border border-neutral-800 text-neutral-100 ${
+        className={`flex flex-col p-2 sm:p-3 bg-[#111111] rounded-xl border border-neutral-800 text-neutral-100 ${
           isExpanded 
             ? "fixed inset-4 sm:inset-12 z-50 shadow-2xl" 
             : "relative h-full w-full"
         }`}
         transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
       >
-        <motion.div layout className="flex items-center justify-between mb-4 shrink-0">
-          <h2 className="text-sm font-medium text-white">Stake tokens</h2>
+        <motion.div layout className="flex items-center justify-between mb-2 shrink-0">
+          <div className="flex items-center gap-4">
+            <h2 className="hidden sm:block text-[17px] font-medium text-white whitespace-nowrap">Stake tokens</h2>
+            <div className="flex items-center gap-2 bg-neutral-800/50 rounded-full px-2 py-1.5 w-32 sm:w-48 border border-neutral-700/30 focus-within:border-neutral-500 transition-colors">
+              <Search className="h-3 w-3 text-neutral-400 shrink-0" />
+              <input 
+                type="text" 
+                placeholder="Search ticker..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent text-[11px] text-white outline-none w-full placeholder:text-neutral-500"
+              />
+            </div>
+          </div>
           <div className="flex items-center gap-2 text-neutral-400">
             <Link href="/staking" className="flex items-center justify-center p-1 cursor-pointer rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors border border-transparent hover:border-neutral-700">
               <ExternalLink className="h-4 w-4" />
@@ -137,63 +155,63 @@ export function TokenList() {
         <table className="w-full text-xs text-left whitespace-nowrap">
           <thead className="text-[10px] uppercase text-neutral-500 border-b border-neutral-800">
             <tr>
-              <th className="pb-3 px-3 font-medium">Token</th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('price')}>
+              <th className="pb-2 px-2 font-medium">Token</th>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('price')}>
                 <div className="flex items-center justify-end gap-1">
                   Price
                   {renderSortIcon('price')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('chg24h')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('chg24h')}>
                 <div className="flex items-center justify-end gap-1">
                   CHG % / 24h
                   {renderSortIcon('chg24h')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake7d')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake7d')}>
                 <div className="flex items-center justify-end gap-1">
                   % 7d
                   {renderSortIcon('stake7d')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake1m')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake1m')}>
                 <div className="flex items-center justify-end gap-1">
                   % 1M
                   {renderSortIcon('stake1m')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake3m')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake3m')}>
                 <div className="flex items-center justify-end gap-1">
                   % 3M
                   {renderSortIcon('stake3m')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake6m')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake6m')}>
                 <div className="flex items-center justify-end gap-1">
                   % 6M
                   {renderSortIcon('stake6m')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake12m')}>
+              <th className="pb-2 px-2 font-medium text-right cursor-pointer hover:text-white transition-colors group" onClick={() => handleSort('stake12m')}>
                 <div className="flex items-center justify-end gap-1">
                   % 12M
                   {renderSortIcon('stake12m')}
                 </div>
               </th>
-              <th className="pb-3 px-3 font-medium text-right"></th>
+              <th className="pb-2 px-2 font-medium text-right"></th>
             </tr>
           </thead>
           <tbody>
             {sortedTokens.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[13px] text-neutral-500">
-                  There is currently no data available.
+                <td colSpan={9} className="py-8 text-center text-[13px] text-neutral-500">
+                  {searchQuery ? "No results found" : "There is currently no data available."}
                 </td>
               </tr>
             ) : (
-              sortedTokens.map((token) => (
+              sortedTokens.slice(0, visibleCount).map((token) => (
                 <tr key={token.ticker} className="border-b border-neutral-800/50 last:border-0 hover:bg-neutral-800/20 transition-colors">
-                  <td className="py-1 px-3">
+                  <td className="py-1 px-2">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0">
                         <Image src={`https://picsum.photos/seed/${token.ticker}/20/20`} alt={token.ticker} width={20} height={20} referrerPolicy="no-referrer" />
@@ -202,19 +220,22 @@ export function TokenList() {
                       <span className="text-neutral-500 hidden sm:inline">{token.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-3 text-right text-white">
-                    {token.price} <span className="text-neutral-500 text-[10px]">USD</span>
+                  <td className="py-1.5 px-2 text-right text-white">
+                    {token.priceFormatted} <span className="text-neutral-500 text-[10px]">USD</span>
                   </td>
-                  <td className={`py-3 px-3 text-right ${token.color === 'green' ? 'text-green-500' : 'text-red-500'}`}>
-                    {token.chg24h}
+                  <td className={`py-1.5 px-2 text-right ${token.chg24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {token.chg24h >= 0 ? '+' : ''}{token.chg24h}%
                   </td>
-                  <td className="py-3 px-3 text-right text-neutral-300">{token.stake7d}</td>
-                  <td className="py-3 px-3 text-right text-neutral-300">{token.stake1m}</td>
-                  <td className="py-3 px-3 text-right text-neutral-300">{token.stake3m}</td>
-                  <td className="py-3 px-3 text-right text-neutral-300">{token.stake6m}</td>
-                  <td className="py-3 px-3 text-right text-neutral-300">{token.stake12m}</td>
-                  <td className="py-3 px-3 text-right">
-                    <button className="bg-white text-black hover:bg-neutral-200 px-3 py-1.5 rounded text-[11px] font-semibold transition-colors cursor-pointer">
+                  <td className="py-1.5 px-2 text-right text-neutral-300">{token.stake7d >= 0 ? '+' : ''}{token.stake7d}%</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-300">{token.stake1m >= 0 ? '+' : ''}{token.stake1m}%</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-300">{token.stake3m >= 0 ? '+' : ''}{token.stake3m}%</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-300">{token.stake6m >= 0 ? '+' : ''}{token.stake6m}%</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-300">{token.stake12m >= 0 ? '+' : ''}{token.stake12m}%</td>
+                  <td className="py-1.5 px-2 text-right">
+                    <button 
+                      onClick={() => openModal(token)}
+                      className="bg-white text-black hover:bg-neutral-200 px-2.5 py-1 rounded text-[10px] font-semibold transition-colors cursor-pointer"
+                    >
                       Stake
                     </button>
                   </td>
@@ -223,6 +244,25 @@ export function TokenList() {
             )}
           </tbody>
         </table>
+        
+        {visibleCount < sortedTokens.length && (
+          <div className="flex justify-center mt-2 mb-1">
+            <button 
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isLoadingMore ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load more"
+              )}
+            </button>
+          </div>
+        )}
         </motion.div>
       </motion.div>
 
