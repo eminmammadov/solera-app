@@ -1,0 +1,31 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - apps/api/Dockerfile
+      - --build-arg
+      - BUILD_DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
+      - --build-arg
+      - BUILD_OHLC_DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
+      - --build-arg
+      - BUILD_LOG_DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
+      - --build-arg
+      - BUILD_SOLANA_DEVNET_DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
+      - --build-arg
+      - BUILD_MAINNET_RPC_URL=https://example-mainnet-rpc.invalid
+      - --build-arg
+      - BUILD_DEVNET_RPC_URL=https://example-devnet-rpc.invalid
+      - --build-arg
+      - BUILD_JWT_KEY=placeholder
+      - --build-arg
+      - BUILD_CORS_ORIGIN=https://staging.solera.work
+      - --build-arg
+      - BUILD_PROXY_KEY=placeholder
+      - --build-arg
+      - BUILD_REDIS_URL=redis://placeholder:6379
+      - -t
+      - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-api-staging:latest
+      - .
+images:
+  - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-api-staging:latest

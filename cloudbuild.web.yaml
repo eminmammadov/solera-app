@@ -1,0 +1,29 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - apps/web/Dockerfile
+      - --build-arg
+      - BUILD_APP_ORIGIN=https://staging.solera.work
+      - --build-arg
+      - BUILD_PUBLIC_APP_ORIGIN=https://staging.solera.work
+      - --build-arg
+      - BUILD_PUBLIC_API_BASE_URL=https://staging.solera.work/api/backend
+      - --build-arg
+      - BUILD_API_INTERNAL_URL=https://solera-api-staging-${PROJECT_NUMBER}.europe-west3.run.app/api
+      - --build-arg
+      - BUILD_MAINNET_RPC_URL=https://example-mainnet-rpc.invalid
+      - --build-arg
+      - BUILD_DEVNET_RPC_URL=https://example-devnet-rpc.invalid
+      - --build-arg
+      - BUILD_PROXY_KEY=placeholder
+      - --build-arg
+      - BUILD_NEWS_KEY=placeholder
+      - --build-arg
+      - BUILD_REDIS_URL=redis://placeholder:6379
+      - -t
+      - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:latest
+      - .
+images:
+  - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:latest
