@@ -42,7 +42,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const port = readPort();
-  await app.listen(port);
-  console.log(`🚀 Solera API running on http://localhost:${port}/api`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Solera API running on http://0.0.0.0:${port}/api`);
 }
 void bootstrap();
