@@ -1,0 +1,6 @@
+ALTER TABLE "WalletConversionLeg"
+ADD COLUMN IF NOT EXISTS "routeProvider" TEXT,
+ADD COLUMN IF NOT EXISTS "routeQuote" JSONB,
+ADD COLUMN IF NOT EXISTS "preparedTransactions" JSONB,
+ADD COLUMN IF NOT EXISTS "preparedMessageHashes" JSONB,
+ADD COLUMN IF NOT EXISTS "preparedTransactionsCount" INTEGER NOT NULL DEFAULT 1;

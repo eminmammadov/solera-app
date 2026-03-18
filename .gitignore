@@ -1,7 +1,61 @@
+# Dependencies
 node_modules/
+**/node_modules/
+
+# Build outputs
 .next/
+out/
+dist/
+apps/web/.next/
+apps/api/dist/
+programs/target/
+programs/test-ledger/
+programs/.anchor/
+programs/.keys/
+
+# Coverage and reports
 coverage/
-.DS_Store
+**/coverage/
+.nyc_output/
+
+# Caches and incremental artifacts
+*.tsbuildinfo
+.eslintcache
+
+# Logs and runtime temp files
 *.log
-.env*
-!.env.example
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.pid
+*.seed
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+.env.*
+apps/web/.env.local
+apps/api/.env
+apps/api/.env.local
+apps/api/.env.*
+!**/.env.example
+
+# Key/cert files (security)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local temp folders
+tmp/
+temp/

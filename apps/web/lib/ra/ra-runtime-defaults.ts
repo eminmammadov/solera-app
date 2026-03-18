@@ -1,0 +1,31 @@
+import type { RaRuntimeSettings } from "@/lib/ra/ra-runtime"
+import { WRAPPED_SOL_MINT_ADDRESS } from "@/lib/solana/solana-constants"
+
+export const DEFAULT_PUBLIC_RA_RUNTIME_SETTINGS: RaRuntimeSettings = {
+  logoUrl: "/logos/ra-white-logo.png",
+  tokenSymbol: "RA",
+  tokenName: "Solera",
+  mintDevnet: "AUUQf8oWYxvqWnAvg2rf9jdL1AAJibHCzshvjisxXZ22",
+  mintMainnet: "2jPF5RY4B3jtJb4iAwRZ5J68WLLu4uaaBZ4wpjV29YYA",
+  treasuryDevnet: "2KNsZWkfUrrpsuP2svBVHGUDPnUTGf1RdJ3TisnfnETp",
+  treasuryMainnet: "2KNsZWkfUrrpsuP2svBVHGUDPnUTGf1RdJ3TisnfnETp",
+  oraclePrimary: "DEXSCREENER",
+  oracleSecondary: "RAYDIUM",
+  stakeFeeBps: 5,
+  claimFeeBps: 5,
+  stakeMinUsd: 10,
+  stakeMaxUsd: 50_000,
+  convertMinUsd: 0.5,
+  convertMaxUsd: 2.5,
+  convertEnabled: true,
+  convertProvider: "RAYDIUM",
+  convertExecutionMode: "ALLOW_MULTI_TX",
+  convertRoutePolicy: "TOKEN_TO_SOL_TO_RA",
+  convertSlippageBps: 100,
+  convertMaxTokensPerSession: 5,
+  convertPoolIdDevnet: "GjcATx94fS1adW1hEVwFH8ACh9kmxaNcrW3xWpxR6PrZ",
+  convertPoolIdMainnet: "GjcATx94fS1adW1hEVwFH8ACh9kmxaNcrW3xWpxR6PrZ",
+  convertQuoteMintDevnet: WRAPPED_SOL_MINT_ADDRESS,
+  convertQuoteMintMainnet: WRAPPED_SOL_MINT_ADDRESS,
+  updatedAt: new Date(0).toISOString(),
+}

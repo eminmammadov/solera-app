@@ -1,0 +1,48 @@
+{
+  "name": "solera-app",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "env:check": "node ../../scripts/validate-web-env.mjs",
+    "dev": "npm run env:check && next dev -p 3000",
+    "build": "npm run env:check && next build",
+    "start": "npm run env:check && next start",
+    "lint": "eslint .",
+    "clean": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/web3.js": "^1.98.4",
+    "autoprefixer": "^10.4.21",
+    "bs58": "^6.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "ioredis": "^5.10.0",
+    "lightweight-charts": "^5.1.0",
+    "lucide-react": "^0.553.0",
+    "motion": "^12.23.24",
+    "next": "^15.4.9",
+    "postcss": "^8.5.6",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "^22.19.15",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.0.8",
+    "tailwindcss": "4.1.11",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,494 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── AUTH ────────────────────────────────────────────
+
+model Admin {
+  id            String   @id @default(uuid())
+  walletAddress String   @unique
+  name          String   @default("Admin")
+  adminRoleId   String
+  adminRole     AdminRoleDefinition @relation(fields: [adminRoleId], references: [id], onDelete: Restrict)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([adminRoleId])
+  @@index([isActive])
+}
+
+model AdminRoleDefinition {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  name       String
+  accessRole AdminAccessRole
+  isSystem   Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  admins     Admin[]
+
+  @@index([accessRole])
+  @@index([isSystem])
+  @@index([isActive])
+}
+
+enum AdminAccessRole {
+  SUPER_ADMIN
+  EDITOR
+  VIEWER
+  CUSTOM
+}
+
+model AuthNonceChallenge {
+  walletAddress String   @id
+  message       String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+// ─── BLOG ────────────────────────────────────────────
+
+model BlogPost {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  summary     String
+  content     String[]
+  category    String
+  author      String    @default("Solera Team")
+  readTime    String    @default("5 min read")
+  imageUrl    String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+  @@index([isPublished])
+}
+
+// ─── MARKET TOKENS (Faz 3) ───────────────────────────
+
+model MarketToken {
+  id                String   @id @default(uuid())
+  ticker            String   @unique
+  name              String
+  network           String   @default("global")
+  price             Decimal  @default(0) @db.Decimal(38, 18)
+  chg24h            Float    @default(0)
+  stake7d           Float    @default(0)
+  stake1m           Float    @default(0)
+  stake3m           Float    @default(0)
+  stake6m           Float    @default(0)
+  stake12m          Float    @default(0)
+  category          String
+  mintAddress       String?
+  icon              String   @default("")
+  isImage           Boolean  @default(false)
+  colorBg           String?
+  priceColor        String?
+  priceDecimalColor String?
+  isActive          Boolean  @default(true)
+  stakeEnabled      Boolean  @default(true)
+  convertEnabled    Boolean  @default(true)
+  portfolioVisible  Boolean  @default(true)
+  publishedAt       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([ticker])
+  @@index([category])
+  @@index([network])
+  @@index([network, isActive])
+}
+
+// ─── NEWS (Faz 4) ────────────────────────────────────
+
+model NewsItem {
+  id        String   @id @default(uuid())
+  title     String
+  source    String
+  tags      String[]
+  body      String?
+  articleUrl String?
+  isActive  Boolean  @default(true)
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  votes     NewsVote[]
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+enum NewsVoteType {
+  UP
+  DOWN
+}
+
+model NewsVote {
+  id         String       @id @default(uuid())
+  newsItemId String
+  newsItem   NewsItem     @relation(fields: [newsItemId], references: [id], onDelete: Cascade)
+  clientKey  String
+  voteType   NewsVoteType
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([newsItemId, clientKey])
+  @@index([clientKey])
+}
+
+// ─── DOCS (Faz 5) ────────────────────────────────────
+
+model DocsCategory {
+  id    String     @id @default(uuid())
+  title String
+  icon  String     @default("Rocket")
+  order Int        @default(0)
+  items DocsPage[]
+
+  @@index([order])
+}
+
+model DocsPage {
+  id         String        @id @default(uuid())
+  title      String
+  slug       String        @unique
+  categoryId String
+  category   DocsCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  order      Int           @default(0)
+  sections   DocsSection[]
+
+  @@index([slug])
+  @@index([categoryId])
+}
+
+model DocsSection {
+  id      String   @id @default(uuid())
+  title   String
+  anchor  String
+  content String[]
+  pageId  String
+  page    DocsPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  order   Int      @default(0)
+
+  @@index([pageId])
+}
+
+// ─── PLATFORM METRICS (Faz 6) ────────────────────────
+
+model MaintenanceSetting {
+  id          String   @id @default("maintenance-settings")
+  enabled     Boolean  @default(false)
+  startsAt    DateTime?
+  message     String?
+  updatedAt   DateTime @updatedAt
+}
+
+model HeaderSetting {
+  id             String   @id @default("header-settings")
+  logoUrl        String?
+  projectName    String?
+  description    String?
+  network        String?
+  connectEnabled Boolean?
+  navLinks       Json?
+  updatedAt      DateTime @updatedAt
+}
+
+model RaRuntimeSetting {
+  id                       String   @id @default("ra-runtime-settings")
+  logoUrl                  String?
+  tokenSymbol              String?
+  tokenName                String?
+  mintDevnet               String?
+  mintMainnet              String?
+  treasuryDevnet           String?
+  treasuryMainnet          String?
+  oraclePrimary            String?
+  oracleSecondary          String?
+  stakeFeeBps              Int?
+  claimFeeBps              Int?
+  stakeMinUsd              Decimal? @db.Decimal(38, 18)
+  stakeMaxUsd              Decimal? @db.Decimal(38, 18)
+  convertMinUsd            Decimal? @db.Decimal(38, 18)
+  convertMaxUsd            Decimal? @db.Decimal(38, 18)
+  convertEnabled           Boolean?
+  convertProvider          String?
+  convertExecutionMode     String?
+  convertRoutePolicy       String?
+  convertSlippageBps       Int?
+  convertMaxTokensPerSession Int?
+  convertPoolIdDevnet      String?
+  convertPoolIdMainnet     String?
+  convertQuoteMintDevnet   String?
+  convertQuoteMintMainnet  String?
+  updatedAt                DateTime @updatedAt
+}
+
+model ProxyBackendSetting {
+  id                      String   @id @default("proxy-backend-settings")
+  draftBackendBaseUrl     String?
+  publishedBackendBaseUrl String?
+  previousBackendBaseUrl  String?
+  version                 Int      @default(1)
+  updatedAt               DateTime @updatedAt
+}
+
+model DocsSetting {
+  id          String   @id @default("docs-settings")
+  version     String?
+  socialLinks Json?
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── WALLET USERS (Faz 7) ───────────────────────────
+
+enum WalletUserRole {
+  USER
+  ADMIN
+}
+
+model WalletUser {
+  id                   String               @id @default(uuid())
+  walletAddress        String               @unique
+  role                 WalletUserRole       @default(USER)
+  isBlocked            Boolean              @default(false)
+  blockedAt            DateTime?
+  blockMessage         String?
+  firstSeenAt          DateTime             @default(now())
+  lastSeenAt           DateTime             @default(now())
+  firstSeenIp          String?
+  lastSeenIp           String?
+  firstSeenCountry     String?
+  lastSeenCountry      String?
+  totalSessionSeconds  Int                  @default(0)
+  totalStakePositions  Int                  @default(0)
+  activeStakePositions Int                  @default(0)
+  totalStakedAmountUsd Decimal              @default(0) @db.Decimal(38, 18)
+  raOnchainBalance     Decimal              @default(0) @db.Decimal(38, 18)
+  raOnchainBalanceUpdatedAt DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  sessions             WalletUserSession[]
+  stakePositions       WalletStakePosition[]
+  tokenHoldings        WalletTokenHolding[]
+  activities           WalletUserActivity[]
+  conversionSessions   WalletConversionSession[]
+
+  @@index([lastSeenAt])
+  @@index([lastSeenCountry])
+  @@index([isBlocked])
+  @@index([role])
+}
+
+model WalletTokenHolding {
+  id           String    @id @default(uuid())
+  userId       String
+  user         WalletUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  network      String
+  mintAddress  String
+  ticker       String
+  tokenName    String?
+  amount       Decimal   @default(0) @db.Decimal(38, 18)
+  lastSyncedAt DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, network, mintAddress])
+  @@index([userId, network])
+  @@index([network, ticker])
+}
+
+model WalletUserSession {
+  id              String    @id @default(uuid())
+  userId          String
+  user            WalletUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  network         String    @default("mainnet")
+  startedAt       DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int       @default(0)
+  ipAddress       String?
+  countryCode     String?
+  userAgent       String?
+  sessionKey      String?
+  isOnline        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([sessionKey])
+  @@index([userId])
+  @@index([lastSeenAt])
+  @@index([isOnline])
+  @@index([network, isOnline])
+}
+
+enum StakePositionStatus {
+  ACTIVE
+  CLAIMED
+  CANCELLED
+}
+
+model WalletStakePosition {
+  id             String              @id @default(uuid())
+  userId         String
+  user           WalletUser          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  network        String              @default("mainnet")
+  tokenTicker    String
+  tokenName      String?
+  amount         Decimal             @db.Decimal(38, 18)
+  amountUsd      Decimal             @default(0) @db.Decimal(38, 18)
+  periodLabel    String
+  periodDays     Int
+  apy            Float
+  rewardToken    String              @default("RA")
+  rewardEstimate Decimal             @default(0) @db.Decimal(38, 18)
+  status         StakePositionStatus @default(ACTIVE)
+  startedAt      DateTime            @default(now())
+  unlockAt       DateTime
+  claimedAt      DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([userId, network])
+  @@index([status])
+  @@index([network, status])
+  @@index([tokenTicker])
+  @@index([startedAt])
+}
+
+enum WalletActivityType {
+  STAKE
+  CLAIM
+  DEPOSIT
+  WITHDRAW
+  CONVERT
+}
+
+enum WalletActivityStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum WalletConversionStatus {
+  PREPARED
+  COMPLETED
+  PARTIAL_SUCCESS
+  FAILED
+  EXPIRED
+}
+
+enum WalletConversionLegStatus {
+  PREPARED
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+model WalletConversionSession {
+  id              String                  @id @default(uuid())
+  userId          String
+  user            WalletUser              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletAddress   String
+  network         String
+  status          WalletConversionStatus  @default(PREPARED)
+  totalInputUsd   Decimal                 @default(0) @db.Decimal(38, 18)
+  quotedRaOut     Decimal                 @default(0) @db.Decimal(38, 18)
+  actualRaOut     Decimal                 @default(0) @db.Decimal(38, 18)
+  totalFeeRa      Decimal                 @default(0) @db.Decimal(38, 18)
+  totalFeeUsd     Decimal                 @default(0) @db.Decimal(38, 18)
+  requesterIp     String?
+  requesterCountry String?
+  userAgent       String?
+  expiresAt       DateTime
+  completedAt     DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  legs            WalletConversionLeg[]
+
+  @@index([userId, createdAt])
+  @@index([walletAddress, createdAt])
+  @@index([status, createdAt])
+  @@index([network, status])
+}
+
+model WalletConversionLeg {
+  id                       String                    @id @default(uuid())
+  sessionId                String
+  session                  WalletConversionSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sequence                 Int
+  status                   WalletConversionLegStatus @default(PREPARED)
+  inputTicker              String
+  inputTokenName           String?
+  inputMintAddress         String
+  inputAmount              Decimal                   @db.Decimal(38, 18)
+  inputAmountRaw           String
+  inputDecimals            Int
+  quotedInputUsd           Decimal                   @default(0) @db.Decimal(38, 18)
+  quotedRaOut              Decimal                   @default(0) @db.Decimal(38, 18)
+  actualRaOut              Decimal                   @default(0) @db.Decimal(38, 18)
+  quotedFeeRa              Decimal                   @default(0) @db.Decimal(38, 18)
+  actualFeeRa              Decimal                   @default(0) @db.Decimal(38, 18)
+  quotedFeeUsd             Decimal                   @default(0) @db.Decimal(38, 18)
+  feeBps                   Int                       @default(0)
+  slippageBps              Int                       @default(0)
+  routeProvider            String?
+  routeQuote               Json?
+  preparedTransactions     Json?
+  preparedMessageHashes    Json?
+  preparedTransactionsCount Int                      @default(1)
+  preparedLastValidBlockHeight Int?
+  signature                String?
+  referenceActivityId      String?
+  errorMessage             String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+
+  @@unique([sessionId, sequence])
+  @@index([sessionId, status])
+  @@index([signature])
+}
+
+model WalletUserActivity {
+  id           String               @id @default(uuid())
+  userId       String
+  user         WalletUser           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletAddress String
+  network      String               @default("mainnet")
+  eventHash    String               @unique
+  type         WalletActivityType
+  status       WalletActivityStatus @default(COMPLETED)
+  tokenTicker  String
+  tokenName    String?
+  amount       Decimal              @db.Decimal(38, 18)
+  amountUsd    Decimal              @default(0) @db.Decimal(38, 18)
+  referenceId  String?
+  metadata     Json?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([userId, network, createdAt])
+  @@index([walletAddress, createdAt])
+  @@index([network, createdAt])
+  @@index([type, createdAt])
+  @@index([status, createdAt])
+  @@index([tokenTicker, createdAt])
+}
+

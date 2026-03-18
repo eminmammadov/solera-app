@@ -1,0 +1,27 @@
+import { PublicKey } from '@solana/web3.js';
+
+export const SOLANA_PLACEHOLDER_PROGRAM_ID = '11111111111111111111111111111111';
+export const WRAPPED_SOL_MINT_ADDRESS =
+  'So11111111111111111111111111111111111111112';
+export const SPL_TOKEN_PROGRAM_ADDRESS =
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+export const SPL_TOKEN_2022_PROGRAM_ADDRESS =
+  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+export const SPL_ASSOCIATED_TOKEN_PROGRAM_ADDRESS =
+  'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
+export const METAPLEX_METADATA_PROGRAM_ADDRESS =
+  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
+
+export const SPL_TOKEN_PROGRAM_ID = new PublicKey(SPL_TOKEN_PROGRAM_ADDRESS);
+export const SPL_TOKEN_2022_PROGRAM_ID = new PublicKey(
+  SPL_TOKEN_2022_PROGRAM_ADDRESS,
+);
+export const SPL_ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
+  SPL_ASSOCIATED_TOKEN_PROGRAM_ADDRESS,
+);
+export const METAPLEX_METADATA_PROGRAM_ID = new PublicKey(
+  METAPLEX_METADATA_PROGRAM_ADDRESS,
+);
+
+export const isSolanaPlaceholderAddress = (value: string | null | undefined) =>
+  !value || value === SOLANA_PLACEHOLDER_PROGRAM_ID;

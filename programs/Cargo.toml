@@ -1,0 +1,14 @@
+[workspace]
+members = ["stake-pool", "swap-node"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "UNLICENSED"
+
+[workspace.dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+anchor-spl = "0.31.1"
+
+[profile.release]
+overflow-checks = true

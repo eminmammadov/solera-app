@@ -1,0 +1,5 @@
+ALTER TABLE "WalletUser" ADD COLUMN IF NOT EXISTS "isBlocked" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "WalletUser" ADD COLUMN IF NOT EXISTS "blockedAt" TIMESTAMP(3);
+ALTER TABLE "WalletUser" ADD COLUMN IF NOT EXISTS "blockMessage" TEXT;
+
+CREATE INDEX IF NOT EXISTS "WalletUser_isBlocked_idx" ON "WalletUser"("isBlocked");

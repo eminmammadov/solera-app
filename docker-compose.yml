@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: solera-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: solera
+      POSTGRES_PASSWORD: solera_secret_2026
+      POSTGRES_DB: solera
+    ports:
+      - "5432:5432"
+    volumes:
+      - solera_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solera"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ohlc-postgres:
+    image: postgres:16-alpine
+    container_name: solera-ohlc-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ohlc
+      POSTGRES_PASSWORD: ohlc_secret_2026
+      POSTGRES_DB: solera_ohlc
+    ports:
+      - "5433:5432"
+    volumes:
+      - solera_ohlc_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ohlc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  audit-postgres:
+    image: postgres:16-alpine
+    container_name: solera-audit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: audit
+      POSTGRES_PASSWORD: audit_secret_2026
+      POSTGRES_DB: solera_audit
+    ports:
+      - "5434:5432"
+    volumes:
+      - solera_audit_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  devnet-postgres:
+    image: postgres:16-alpine
+    container_name: solera-devnet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: devnet
+      POSTGRES_PASSWORD: devnet_secret_2026
+      POSTGRES_DB: solera_devnet
+    ports:
+      - "5545:5432"
+    volumes:
+      - solera_devnet_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devnet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: solera-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - solera_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  solera_pgdata:
+  solera_ohlc_pgdata:
+  solera_audit_pgdata:
+  solera_devnet_pgdata:
+  solera_redisdata:

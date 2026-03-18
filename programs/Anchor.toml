@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.31.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.devnet]
+stake_pool = "HP67PeCaUW7Jtr33t43TJq5G2E2AuAztBmJj4hTg9LUc"
+swap_node = "Fc724ry7NhsVVQqRtpQKLWBNCStX4whjFqcvoLXkqf6N"
+
+[provider]
+cluster = "Devnet"
+wallet = "./.keys/devnet-deployer.json"
+
+[workspace]
+members = [
+  "stake-pool",
+  "swap-node"
+]
+
+[scripts]
+test = "echo \"Use npm run staking:test for workspace Rust program tests.\""
