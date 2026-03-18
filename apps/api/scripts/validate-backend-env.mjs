@@ -45,6 +45,40 @@ const optionalBooleanEnv = [
   "STAKING_MAINNET_ALLOW_FUNDING_BATCH",
 ]
 const errors = []
+
+const validatePostgresUrl = (name, value) => {
+  const normalized = value.toLowerCase()
+  if (
+    !(
+      normalized.startsWith("postgresql://") ||
+      normalized.startsWith("postgres://")
+    )
+  ) {
+    errors.push(`${name} must start with postgresql:// or postgres://`)
+  }
+  if (!value.includes("://") || !value.includes("@")) {
+    errors.push(`${name} must include connection authority and host`)
+  }
+
+  try {
+    const parsed = new URL(value)
+    if (
+      parsed.protocol !== "postgresql:" &&
+      parsed.protocol !== "postgres:"
+    ) {
+      errors.push(`${name} must use the postgres:// or postgresql:// protocol`)
+    }
+    if (!parsed.username) {
+      errors.push(`${name} must include a database username`)
+    }
+    if (!parsed.pathname || parsed.pathname === "/") {
+      errors.push(`${name} must include a database name in the path`)
+    }
+  } catch {
+    errors.push(`${name} must be a valid PostgreSQL connection URL`)
+  }
+}
+
 const readBooleanLike = (name, fallback = false) => {
   const value = process.env[name]?.trim().toLowerCase()
   if (!value) return fallback
@@ -72,18 +106,7 @@ for (const name of requiredUrlEnv) {
     errors.push(`Missing ${name}`)
     continue
   }
-  const normalized = value.toLowerCase()
-  if (
-    !(
-      normalized.startsWith("postgresql://") ||
-      normalized.startsWith("postgres://")
-    )
-  ) {
-    errors.push(`${name} must start with postgresql:// or postgres://`)
-  }
-  if (!value.includes("://") || !value.includes("@")) {
-    errors.push(`${name} must include connection authority and host`)
-  }
+  validatePostgresUrl(name, value)
 }
 
 for (const name of requiredHttpUrlEnv) {
@@ -106,18 +129,7 @@ for (const name of requiredHttpUrlEnv) {
 for (const name of optionalUrlEnv) {
   const value = process.env[name]?.trim()
   if (!value) continue
-  const normalized = value.toLowerCase()
-  if (
-    !(
-      normalized.startsWith("postgresql://") ||
-      normalized.startsWith("postgres://")
-    )
-  ) {
-    errors.push(`${name} must start with postgresql:// or postgres://`)
-  }
-  if (!value.includes("://") || !value.includes("@")) {
-    errors.push(`${name} must include connection authority and host`)
-  }
+  validatePostgresUrl(name, value)
 }
 
 for (const name of optionalBooleanEnv) {
