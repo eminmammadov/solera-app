@@ -29,6 +29,7 @@ yarn-debug.log*
 pnpm-debug.log*
 *.pid
 *.seed
+eslint_out.txt
 
 # Environment and secrets
 .env
@@ -40,6 +41,9 @@ apps/api/.env
 apps/api/.env.local
 apps/api/.env.*
 !**/.env.example
+
+# Runtime uploads
+apps/web/public/uploads/
 
 # Key/cert files (security)
 *.pem
