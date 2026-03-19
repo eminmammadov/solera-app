@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Header } from "@/components/layout/Header"
 import { NewsFeed } from "@/components/panels/NewsFeed"
 import { fetchPublicMaintenanceStatus } from "@/lib/public/system-public"
+import { API_BASE_URL } from "@/lib/config/api"
 
 interface PublicAppShellProps {
   children: ReactNode
@@ -18,7 +19,14 @@ export async function PublicAppShell({ children }: PublicAppShellProps) {
   try {
     const maintenance = await fetchPublicMaintenanceStatus()
     if (maintenance.isActive) {
-      redirect("/maintenance")
+      const debugParams = new URLSearchParams({
+        source: "public-shell",
+        active: String(maintenance.isActive),
+        enabled: String(maintenance.maintenanceEnabled),
+        startsAt: maintenance.maintenanceStartsAt ?? "",
+        apiBase: API_BASE_URL,
+      })
+      redirect(`/maintenance?${debugParams.toString()}`)
     }
   } catch {
     // Keep public pages reachable when maintenance status cannot be resolved.
