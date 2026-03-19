@@ -23,7 +23,9 @@ steps:
       - --build-arg
       - BUILD_REDIS_URL=redis://placeholder:6379
       - -t
-      - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:latest
+      - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:${_IMAGE_TAG}
       - .
 images:
-  - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:latest
+  - europe-west3-docker.pkg.dev/$PROJECT_ID/solera-staging/solera-web-staging:${_IMAGE_TAG}
+substitutions:
+  _IMAGE_TAG: latest
