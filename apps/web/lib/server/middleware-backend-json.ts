@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server";
+import { readValidatedHttpEnv } from "@/lib/config/env";
+import { SOLERA_PROXY_SHARED_KEY } from "@/app/api/_shared/proxy/constants";
 
 interface FetchMiddlewareBackendJsonOptions<TResponse> {
   path: string;
@@ -16,14 +18,23 @@ export const fetchMiddlewareBackendJson = async <TResponse>(
     validate,
   }: FetchMiddlewareBackendJsonOptions<TResponse>,
 ): Promise<TResponse> => {
-  const targetUrl = new URL(path, request.url);
+  const internalApiBaseUrl = readValidatedHttpEnv("SOLERA_API_INTERNAL_URL");
+  const targetUrl =
+    internalApiBaseUrl && path.startsWith("/api/backend")
+      ? new URL(path.replace("/api/backend", ""), `${internalApiBaseUrl}/`)
+      : new URL(path, request.url);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(targetUrl.toString(), {
       cache: "no-store",
-      headers: { accept: "application/json" },
+      headers: {
+        accept: "application/json",
+        ...(SOLERA_PROXY_SHARED_KEY
+          ? { "x-solera-proxy-key": SOLERA_PROXY_SHARED_KEY }
+          : {}),
+      },
       signal: controller.signal,
     });
 
