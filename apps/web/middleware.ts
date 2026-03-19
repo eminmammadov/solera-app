@@ -5,11 +5,9 @@ import {
   sanitizeBlockedAccessMessage,
 } from "@/lib/access/blocked-access-notice-shared";
 import { backendRoutes } from "@/lib/api/backend-routes";
-import { isProductionRuntime, readBooleanEnv } from "@/lib/config/env";
+import { isProductionRuntime } from "@/lib/config/env";
 import { fetchMiddlewareBackendJson } from "@/lib/server/middleware-backend-json";
 
-const MAINTENANCE_PAGE_PATH = "/maintenance";
-const MAINTENANCE_STATUS_PATH = `/api/backend${backendRoutes.system.maintenanceStatus}`;
 const HEADER_SETTINGS_PATH = `/api/backend${backendRoutes.system.header}`;
 const USER_ACCESS_PATH = "/api/backend/users/access";
 const PROFILE_PATH_PREFIX = "/profile";
@@ -17,17 +15,8 @@ const USER_AUTH_COOKIE_NAME = "solera_user_token";
 const USER_AUTH_TOKEN_TYPE = "wallet_user";
 const COOKIE_SECURE = isProductionRuntime();
 const BLOCKED_ACCESS_CHECK_TIMEOUT_MS = 1_200;
-const MAINTENANCE_CHECK_TIMEOUT_MS = 1_500;
 const CONNECT_ENABLED_CHECK_TIMEOUT_MS = 1_200;
 const CONNECT_ENABLED_CACHE_TTL_MS = 15_000;
-const MAINTENANCE_FAIL_CLOSED = readBooleanEnv(
-  "MAINTENANCE_FAIL_CLOSED",
-  isProductionRuntime(),
-);
-
-interface MaintenanceStatusResponse {
-  isActive: boolean;
-}
 
 interface WalletAccessResponse {
   walletAddress: string;
@@ -150,20 +139,6 @@ async function fetchWalletAccessStatus(
   });
 }
 
-async function isMaintenanceActive(request: NextRequest): Promise<boolean> {
-  const payload = await fetchMiddlewareBackendJson(request, {
-    path: MAINTENANCE_STATUS_PATH,
-    timeoutMs: MAINTENANCE_CHECK_TIMEOUT_MS,
-    fallbackValue: { isActive: MAINTENANCE_FAIL_CLOSED },
-    validate: (data): data is MaintenanceStatusResponse =>
-      typeof data === "object" &&
-      data !== null &&
-      typeof (data as MaintenanceStatusResponse).isActive === "boolean",
-  });
-
-  return payload.isActive;
-}
-
 async function isConnectEnabled(request: NextRequest): Promise<boolean> {
   const now = Date.now();
   if (connectEnabledCache && connectEnabledCache.expiresAt > now) {
@@ -226,28 +201,7 @@ export async function middleware(request: NextRequest) {
       return buildUserAccessDeniedResponse(request, accessStatus.message);
     }
   }
-
-  const isMaintenancePreview = pathname === MAINTENANCE_PAGE_PATH && searchParams.get("preview") === "1";
-  if (isMaintenancePreview) {
-    return NextResponse.next();
-  }
-
-  const maintenanceActive = await isMaintenanceActive(request);
-
-  if (pathname === MAINTENANCE_PAGE_PATH) {
-    if (maintenanceActive) {
-      return NextResponse.next();
-    }
-
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  if (!maintenanceActive) {
-    return NextResponse.next();
-  }
-
-  const maintenanceUrl = new URL(MAINTENANCE_PAGE_PATH, request.url);
-  return NextResponse.redirect(maintenanceUrl);
+  return NextResponse.next();
 }
 
 export const config = {

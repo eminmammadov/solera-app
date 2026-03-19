@@ -6,8 +6,8 @@ const resolveServerApiBase = () => {
   const validatedPublicApiBase = readValidatedHttpEnv("NEXT_PUBLIC_API_BASE_URL")
   const validatedInternalApiBase = readValidatedHttpEnv("SOLERA_API_INTERNAL_URL")
 
-  if (validatedPublicApiBase) return validatedPublicApiBase
   if (validatedInternalApiBase) return validatedInternalApiBase
+  if (validatedPublicApiBase) return validatedPublicApiBase
 
   throw new Error(
     "Missing API configuration for server runtime. Define NEXT_PUBLIC_API_BASE_URL or SOLERA_API_INTERNAL_URL.",
