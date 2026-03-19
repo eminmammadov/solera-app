@@ -5,11 +5,11 @@ steps:
       - -f
       - apps/web/Dockerfile
       - --build-arg
-      - BUILD_APP_ORIGIN=https://staging.solera.work
+      - BUILD_APP_ORIGIN=https://solera-web-staging-${PROJECT_NUMBER}.europe-west3.run.app
       - --build-arg
-      - BUILD_PUBLIC_APP_ORIGIN=https://staging.solera.work
+      - BUILD_PUBLIC_APP_ORIGIN=https://solera-web-staging-${PROJECT_NUMBER}.europe-west3.run.app
       - --build-arg
-      - BUILD_PUBLIC_API_BASE_URL=https://staging.solera.work/api/backend
+      - BUILD_PUBLIC_API_BASE_URL=https://solera-api-staging-${PROJECT_NUMBER}.europe-west3.run.app/api
       - --build-arg
       - BUILD_API_INTERNAL_URL=https://solera-api-staging-${PROJECT_NUMBER}.europe-west3.run.app/api
       - --build-arg
