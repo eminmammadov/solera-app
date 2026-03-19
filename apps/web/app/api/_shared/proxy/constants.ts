@@ -3,6 +3,7 @@ import { isProductionRuntime, readOptionalEnv } from "@/lib/config/env"
 export const FORWARDED_HEADER_ALLOWLIST = [
   "accept",
   "accept-language",
+  "authorization",
   "content-type",
   "origin",
   "referer",
