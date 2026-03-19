@@ -95,9 +95,19 @@ export class MarketService {
     this.uploadCompatReady = this.ensureTokenUploadCompatibility();
   }
 
+  private async ensureUploadCompat(): Promise<void> {
+    try {
+      await this.uploadCompatReady;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'unexpected upload compat failure';
+      this.logger.warn(`Token upload compatibility check skipped: ${message}`);
+    }
+  }
+
   // Public/User frontend: Get only ACTIVE tokens
   async getActiveTokens() {
-    await this.uploadCompatReady;
+    await this.ensureUploadCompat();
     const tokens = await this.prisma.marketToken.findMany({
       where: { isActive: true },
       orderBy: [{ category: 'asc' }, { chg24h: 'desc' }],
@@ -108,7 +118,7 @@ export class MarketService {
 
   // Admin panel: List all tokens
   async getAllTokensAdmin() {
-    await this.uploadCompatReady;
+    await this.ensureUploadCompat();
     const tokens = await this.prisma.marketToken.findMany({
       orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
     });
@@ -118,7 +128,7 @@ export class MarketService {
 
   // Admin panel: Get a token by ID
   async getTokenAdmin(id: string) {
-    await this.uploadCompatReady;
+    await this.ensureUploadCompat();
     const token = await this.prisma.marketToken.findUnique({
       where: { id },
     });
@@ -580,7 +590,7 @@ export class MarketService {
 
   // Admin panel: Create token
   async createToken(dto: CreateMarketTokenDto) {
-    await this.uploadCompatReady;
+    await this.ensureUploadCompat();
     const tickerUpper = dto.ticker.toUpperCase();
     const existing = await this.prisma.marketToken.findUnique({
       where: { ticker: tickerUpper },
@@ -619,7 +629,7 @@ export class MarketService {
 
   // Admin panel: Update token
   async updateToken(id: string, dto: UpdateMarketTokenDto) {
-    await this.uploadCompatReady;
+    await this.ensureUploadCompat();
     const existing = await this.prisma.marketToken.findUnique({
       where: { id },
     });

@@ -55,8 +55,8 @@ const markRedisHealthy = () => {
   runtimeStatus.lastErrorMessage = null;
 };
 
-const markRedisError = (error: unknown) => {
-  runtimeStatus.effectiveBackend = 'redis';
+const markRedisFallback = (error: unknown) => {
+  runtimeStatus.effectiveBackend = 'memory';
   runtimeStatus.degraded = true;
   runtimeStatus.lastFallbackAt = new Date().toISOString();
   runtimeStatus.lastErrorMessage =
@@ -235,8 +235,40 @@ return { current, ttl }
   }
 }
 
+class InMemoryRateLimitStore implements RateLimitStore {
+  private readonly entries = new Map<string, { count: number; resetAt: number }>();
+
+  async consume(input: RateLimitConsumeInput): Promise<RateLimitConsumeResult> {
+    const now = Date.now();
+    const windowMs = Math.max(1, Math.trunc(input.windowMs));
+    const current = this.entries.get(input.key);
+
+    if (!current || current.resetAt <= now) {
+      const resetAt = now + windowMs;
+      this.entries.set(input.key, { count: 1, resetAt });
+      return {
+        allowed: true,
+        count: 1,
+        resetAt,
+      };
+    }
+
+    current.count += 1;
+    this.entries.set(input.key, current);
+
+    return {
+      allowed: current.count <= input.max,
+      count: current.count,
+      resetAt: current.resetAt,
+    };
+  }
+}
+
 class ObservedRedisRateLimitStore implements RateLimitStore {
-  constructor(private readonly primary: RateLimitStore) {}
+  constructor(
+    private readonly primary: RateLimitStore,
+    private readonly fallback: RateLimitStore,
+  ) {}
 
   async consume(input: RateLimitConsumeInput): Promise<RateLimitConsumeResult> {
     try {
@@ -244,10 +276,8 @@ class ObservedRedisRateLimitStore implements RateLimitStore {
       markRedisHealthy();
       return result;
     } catch (error) {
-      markRedisError(error);
-      throw new Error(
-        'Rate-limit backend unavailable. Restore Redis connectivity.',
-      );
+      markRedisFallback(error);
+      return this.fallback.consume(input);
     }
   }
 }
@@ -258,6 +288,7 @@ const readOptionalEnv = (name: string): string | null => {
 };
 
 export const createRateLimitStore = (): RateLimitStore => {
+  const memoryFallback = new InMemoryRateLimitStore();
   const redisSocketUrl = readOptionalEnv('RATE_LIMIT_REDIS_URL');
   const redisSocketPassword = readOptionalEnv('RATE_LIMIT_REDIS_PASSWORD');
   const redisConnectTimeoutMsRaw = readOptionalEnv(
@@ -280,7 +311,7 @@ export const createRateLimitStore = (): RateLimitStore => {
         : 2000,
     });
     markConfiguredRedis();
-    return new ObservedRedisRateLimitStore(redisStore);
+    return new ObservedRedisRateLimitStore(redisStore, memoryFallback);
   }
 
   const redisRestUrl = readOptionalEnv('RATE_LIMIT_REDIS_REST_URL');
@@ -306,7 +337,7 @@ export const createRateLimitStore = (): RateLimitStore => {
   });
 
   markConfiguredRedis();
-  return new ObservedRedisRateLimitStore(redisStore);
+  return new ObservedRedisRateLimitStore(redisStore, memoryFallback);
 };
 
 export const getSharedRateLimitStore = (): RateLimitStore => {
