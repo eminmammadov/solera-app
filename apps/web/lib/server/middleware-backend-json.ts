@@ -9,6 +9,35 @@ interface FetchMiddlewareBackendJsonOptions<TResponse> {
   validate?: (payload: unknown) => payload is TResponse;
 }
 
+const normalizeUrl = (value: string) => value.replace(/\/+$/, "");
+
+const buildCandidateUrls = (request: NextRequest, path: string): string[] => {
+  const candidates = new Set<string>();
+  const internalApiBaseUrl = readValidatedHttpEnv("SOLERA_API_INTERNAL_URL");
+  const publicAppOrigin =
+    readValidatedHttpEnv("APP_ORIGIN") ??
+    readValidatedHttpEnv("NEXT_PUBLIC_APP_ORIGIN");
+  const internalApiPath =
+    path.startsWith("/api/backend") ? path.replace("/api/backend", "") : path;
+
+  if (internalApiBaseUrl && path.startsWith("/api/backend")) {
+    candidates.add(
+      new URL(
+        internalApiPath.replace(/^\/+/, ""),
+        `${normalizeUrl(internalApiBaseUrl)}/`,
+      ).toString(),
+    );
+  }
+
+  if (publicAppOrigin) {
+    candidates.add(new URL(path, `${normalizeUrl(publicAppOrigin)}/`).toString());
+  }
+
+  candidates.add(new URL(path, request.url).toString());
+
+  return [...candidates];
+};
+
 export const fetchMiddlewareBackendJson = async <TResponse>(
   request: NextRequest,
   {
@@ -18,44 +47,40 @@ export const fetchMiddlewareBackendJson = async <TResponse>(
     validate,
   }: FetchMiddlewareBackendJsonOptions<TResponse>,
 ): Promise<TResponse> => {
-  const internalApiBaseUrl = readValidatedHttpEnv("SOLERA_API_INTERNAL_URL");
-  const internalApiPath =
-    path.startsWith("/api/backend") ? path.replace("/api/backend", "") : path;
-  const targetUrl =
-    internalApiBaseUrl && path.startsWith("/api/backend")
-      ? new URL(
-          internalApiPath.replace(/^\/+/, ""),
-          `${internalApiBaseUrl.replace(/\/+$/, "")}/`,
-        )
-      : new URL(path, request.url);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const targetUrls = buildCandidateUrls(request, path);
 
-  try {
-    const response = await fetch(targetUrl.toString(), {
-      cache: "no-store",
-      headers: {
-        accept: "application/json",
-        ...(SOLERA_PROXY_SHARED_KEY
-          ? { "x-solera-proxy-key": SOLERA_PROXY_SHARED_KEY }
-          : {}),
-      },
-      signal: controller.signal,
-    });
+  for (const targetUrl of targetUrls) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      return fallbackValue;
+    try {
+      const response = await fetch(targetUrl, {
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+          ...(SOLERA_PROXY_SHARED_KEY
+            ? { "x-solera-proxy-key": SOLERA_PROXY_SHARED_KEY }
+            : {}),
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const payload: unknown = await response.json();
+      if (validate && !validate(payload)) {
+        continue;
+      }
+
+      return (payload as TResponse) ?? fallbackValue;
+    } catch {
+      continue;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    const payload: unknown = await response.json();
-    if (validate && !validate(payload)) {
-      return fallbackValue;
-    }
-
-    return (payload as TResponse) ?? fallbackValue;
-  } catch {
-    return fallbackValue;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  return fallbackValue;
 };
