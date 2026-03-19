@@ -19,9 +19,14 @@ export const fetchMiddlewareBackendJson = async <TResponse>(
   }: FetchMiddlewareBackendJsonOptions<TResponse>,
 ): Promise<TResponse> => {
   const internalApiBaseUrl = readValidatedHttpEnv("SOLERA_API_INTERNAL_URL");
+  const internalApiPath =
+    path.startsWith("/api/backend") ? path.replace("/api/backend", "") : path;
   const targetUrl =
     internalApiBaseUrl && path.startsWith("/api/backend")
-      ? new URL(path.replace("/api/backend", ""), `${internalApiBaseUrl}/`)
+      ? new URL(
+          internalApiPath.replace(/^\/+/, ""),
+          `${internalApiBaseUrl.replace(/\/+$/, "")}/`,
+        )
       : new URL(path, request.url);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
